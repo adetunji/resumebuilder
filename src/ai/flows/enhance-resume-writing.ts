@@ -48,8 +48,38 @@ const enhanceResumeWorkExperienceFlow = ai.defineFlow(
     inputSchema: EnhanceResumeWorkExperienceInputSchema,
     outputSchema: EnhanceResumeWorkExperienceOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
+  async (input): Promise<EnhanceResumeWorkExperienceOutput> => {
+    const result = await prompt(input); // result is GenerateResponse<EnhanceResumeWorkExperienceOutputSchema>
+    const outputData = result.output;
+
+    if (outputData) {
+      // Ensure the expected field is present; Zod validation should catch this,
+      // but an explicit check adds clarity if Zod somehow passes an incomplete object.
+      if (typeof outputData.enhancedWorkExperience === 'string') {
+        return outputData; // Success path
+      }
+    }
+
+    // Handle cases where output is undefined or malformed
+    const primaryCandidate = result.candidates?.[0];
+    let specificError = 'AI failed to generate a valid enhancement. The output was empty or not in the expected format.';
+
+    if (primaryCandidate) {
+      if (primaryCandidate.finishReason === 'SAFETY') {
+        specificError = `AI could not process the request due to safety reasons: ${primaryCandidate.finishMessage || 'Content policy violation.'}`;
+      } else if (primaryCandidate.finishReason === 'MAX_TOKENS') {
+        specificError = 'AI could not complete the enhancement because the maximum output length was reached.';
+      } else if (primaryCandidate.finishReason === 'RECITATION') {
+        specificError = `AI response was blocked due to recitation policy: ${primaryCandidate.finishMessage || 'Recitation policy violation.'}`;
+      } else if (primaryCandidate.finishReason && primaryCandidate.finishReason !== 'STOP' && primaryCandidate.finishReason !== 'OTHER') {
+        specificError = `AI stopped generating for reason: ${primaryCandidate.finishReason}. ${primaryCandidate.finishMessage || ''}`.trim();
+      } else if (primaryCandidate.finishReason === 'OTHER') {
+         specificError = 'AI encountered an unspecified model error.';
+      }
+    }
+    
+    console.error(`[${enhanceResumeWorkExperienceFlow.name}]: Error - ${specificError}`, { input, fullResult: result });
+    throw new Error(specificError);
   }
 );
+
