@@ -5,14 +5,14 @@ import type { ResumeData, TemplateId } from "@/lib/types";
 import { templates } from "./templates";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Icons } from "./icons";
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 
 interface ResumePreviewProps {
   resumeData: ResumeData;
   selectedTemplateId: TemplateId;
 }
 
-export function ResumePreview({ resumeData, selectedTemplateId }: ResumePreviewProps) {
+export const ResumePreview = memo(function ResumePreview({ resumeData, selectedTemplateId }: ResumePreviewProps) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
@@ -48,4 +48,6 @@ export function ResumePreview({ resumeData, selectedTemplateId }: ResumePreviewP
       </CardContent>
     </Card>
   );
-}
+});
+
+ResumePreview.displayName = 'ResumePreview';
