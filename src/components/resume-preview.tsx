@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { ResumeData, TemplateId } from "@/lib/types";
@@ -38,7 +37,7 @@ export const ResumePreview = memo(function ResumePreview({ resumeData, selectedT
          </CardTitle>
       </CardHeader>
       <CardContent className="p-0 overflow-y-auto h-[calc(100%-var(--header-height,4rem))]">
-        <div className="aspect-[8.5/11] w-full max-w-2xl mx-auto my-4 bg-white shadow-2xl text-black scale-[0.95] origin-top print:shadow-none print:my-0 print:scale-100 print:max-w-full">
+        <div className="aspect-[8.5/11] w-full max-w-2xl mx-auto my-4 bg-white shadow-2xl text-black scale-[0.95] origin-top printable-resume-area">
           {SelectedTemplateComponent ? (
             <SelectedTemplateComponent data={resumeData} />
           ) : (

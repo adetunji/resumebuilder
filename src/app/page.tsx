@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -103,37 +102,43 @@ export default function ResumeCraftPage() {
     <div className="flex flex-col h-screen bg-gradient-to-br from-background to-muted/30 overflow-hidden print:bg-white print:h-auto">
       <style jsx global>{`
         @media print {
+          body {
+            margin: 0 !important;
+            padding: 0 !important;
+          }
           body * {
-            visibility: hidden;
+            visibility: hidden !important;
           }
-          .print-container, .print-container * {
-            visibility: visible;
+          .printable-resume-area, .printable-resume-area * {
+            visibility: visible !important;
           }
-          .print-container {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            transform: scale(1) !important; /* Override preview scaling */
+          .printable-resume-area {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100vw !important; 
+            height: 100vh !important;
+            margin: 0 !important;
+            padding: 1cm !important; /* Print margin */
+            box-sizing: border-box !important;
+            border: none !important;
+            box-shadow: none !important;
+            transform: scale(1) !important;
+            overflow: visible !important;
+            background-color: white !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
           header, footer, .editor-column { /* Hide non-printable parts */
             display: none !important;
           }
-          .preview-column { /* Ensure preview column takes full width for print */
+          .preview-column { /* Ensure preview column wrapper doesn't interfere */
              width: 100% !important;
              max-width: 100% !important;
              height: auto !important;
              overflow: visible !important;
-          }
-           .aspect-\\[8\\.5\\/11\\] { /* Ensure A4 preview takes full page */
-            box-shadow: none !important;
-            margin: 0 !important;
-            scale: 1 !important;
-            max-width: 100% !important;
-            height: auto !important;
+             padding: 0 !important;
+             margin: 0 !important;
           }
         }
       `}</style>
@@ -162,7 +167,7 @@ export default function ResumeCraftPage() {
         <div className="editor-column h-full overflow-y-auto p-0 md:p-2 bg-background/30 md:bg-transparent">
           <ResumeEditor resumeData={resumeData} setResumeData={setResumeData} />
         </div>
-        <div className="preview-column h-full overflow-y-auto p-0 md:p-2 bg-muted/30 md:bg-transparent print-container">
+        <div className="preview-column h-full overflow-y-auto p-0 md:p-2 bg-muted/30 md:bg-transparent">
           <ResumePreview resumeData={resumeData} selectedTemplateId={selectedTemplateId} />
         </div>
       </main>
