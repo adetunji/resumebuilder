@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { ResumeData, TemplateId } from '@/lib/types';
 import { ResumeEditor } from '@/components/resume-editor';
 import { ResumePreview } from '@/components/resume-preview';
@@ -9,6 +9,8 @@ import { TemplateSelector } from '@/components/template-selector';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import { useToast } from "@/hooks/use-toast";
+import { pdf } from '@react-pdf/renderer';
+import ResumePdfDocument from '@/components/resume-pdf-document'; // New import
 
 const initialResumeData: ResumeData = {
   personalInfo: {
@@ -52,6 +54,7 @@ export default function ResumeCraftPage() {
   const [selectedTemplateId, setSelectedTemplateId] = useState<TemplateId>('modern');
   const [isClient, setIsClient] = useState(false);
   const { toast } = useToast();
+  const [isDownloading, setIsDownloading] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -77,17 +80,42 @@ export default function ResumeCraftPage() {
     });
   };
 
-  const handleDownload = () => {
-    if (!isClient) return;
+  const handleDownload = async () => {
+    if (!isClient || isDownloading) return;
+
+    setIsDownloading(true);
     toast({
-      title: "Preparing PDF...",
-      description: "Your resume will be prepared for download. Please use your browser's print dialog to 'Save as PDF'.",
+      title: "Generating PDF...",
+      description: "Your resume is being prepared for download. Please wait.",
     });
-    
-    // This uses the browser's print functionality which typically includes a "Save as PDF" option.
-    setTimeout(() => { // Delay to allow toast to show
-        window.print();
-    }, 500);
+
+    try {
+      const doc = <ResumePdfDocument data={resumeData} />;
+      const blob = await pdf(doc).toBlob();
+      
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      const fileName = `${resumeData.personalInfo.fullName.replace(/\s+/g, '_') || 'resume'}_${selectedTemplateId}.pdf`;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+
+      toast({
+        title: "Download Started!",
+        description: `Your PDF (${fileName}) should be downloading.`,
+      });
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast({
+        title: "PDF Generation Failed",
+        description: "Could not generate the PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   if (!isClient) {
@@ -101,48 +129,7 @@ export default function ResumeCraftPage() {
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-background to-muted/30 overflow-hidden print:bg-white print:h-auto">
-      <style jsx global>{`
-        @media print {
-          body {
-            margin: 0 !important;
-            padding: 0 !important;
-          }
-          body * {
-            visibility: hidden !important;
-          }
-          .printable-resume-area, .printable-resume-area * {
-            visibility: visible !important;
-          }
-          .printable-resume-area {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 100vw !important; 
-            height: 100vh !important;
-            margin: 0 !important;
-            padding: 1cm !important; /* Print margin */
-            box-sizing: border-box !important;
-            border: none !important;
-            box-shadow: none !important;
-            transform: scale(1) !important;
-            overflow: visible !important;
-            background-color: white !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-          header, footer, .editor-column { /* Hide non-printable parts */
-            display: none !important;
-          }
-          .preview-column { /* Ensure preview column wrapper doesn't interfere */
-             width: 100% !important;
-             max-width: 100% !important;
-             height: auto !important;
-             overflow: visible !important;
-             padding: 0 !important;
-             margin: 0 !important;
-          }
-        }
-      `}</style>
+      {/* Print-specific styles are removed as we now directly generate PDF */}
       <header className="p-3 md:p-4 border-b border-border/50 shadow-sm bg-card/70 backdrop-blur-md sticky top-0 z-20">
         <div className="container mx-auto flex items-center justify-between max-w-full px-2 sm:px-4">
           <div className="flex items-center gap-2">
@@ -157,8 +144,15 @@ export default function ResumeCraftPage() {
             <Button onClick={handleSaveData} variant="outline" size="sm" className="hidden sm:inline-flex">
               <Icons.save className="mr-2 h-4 w-4" /> Save Progress
             </Button>
-            <Button onClick={handleDownload} variant="default" size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground">
-              <Icons.download className="mr-2 h-4 w-4" /> Download PDF
+            <Button 
+              onClick={handleDownload} 
+              variant="default" 
+              size="sm" 
+              className="bg-accent hover:bg-accent/90 text-accent-foreground"
+              disabled={isDownloading}
+            >
+              {isDownloading ? <Icons.loader className="mr-2 h-4 w-4 animate-spin" /> : <Icons.download className="mr-2 h-4 w-4" />}
+              {isDownloading ? "Downloading..." : "Download PDF"}
             </Button>
           </div>
         </div>

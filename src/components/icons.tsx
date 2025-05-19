@@ -13,7 +13,8 @@ import {
   Settings2,
   Palette,
   LayoutGrid,
-  Save
+  Save,
+  Loader2 // Added Loader2
 } from 'lucide-react';
 
 export type Icon = LucideIcon;
@@ -32,6 +33,7 @@ export const Icons = {
   palette: Palette,
   templates: LayoutGrid,
   save: Save,
+  loader: Loader2, // Added Loader2
 };
 
 interface SectionIconProps extends LucideProps {
