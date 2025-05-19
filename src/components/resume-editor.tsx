@@ -16,7 +16,7 @@ import { enhanceSummaryAction, enhanceWorkExperienceAction, enhanceSkillsAction 
 // Moved SectionWrapper outside and memoized it
 const ResumeSection: React.FC<{ title: string; iconName: keyof typeof Icons; children: React.ReactNode; value: string }> = React.memo(({ title, iconName, children, value }) => (
     <AccordionItem value={value}>
-        <AccordionTrigger className="text-lg font-semibold hover:no-underline text-secondary-foreground hover:text-primary transition-colors">
+        <AccordionTrigger className="text-lg font-semibold hover:no-underline text-primary hover:text-accent transition-colors">
             <div className="flex items-center gap-3">
                 <SectionIcon name={iconName} className="h-5 w-5 text-primary" />
                 {title}
@@ -334,3 +334,5 @@ export function ResumeEditor({ resumeData, setResumeData }: ResumeEditorProps) {
   );
 }
 
+
+    
