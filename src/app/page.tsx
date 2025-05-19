@@ -9,8 +9,8 @@ import { TemplateSelector } from '@/components/template-selector';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import { useToast } from "@/hooks/use-toast";
-import { pdf } from '@react-pdf/renderer';
-import ResumePdfDocument from '@/components/resume-pdf-document'; // New import
+// Removed static import: import { pdf } from '@react-pdf/renderer';
+import ResumePdfDocument from '@/components/resume-pdf-document';
 
 const initialResumeData: ResumeData = {
   personalInfo: {
@@ -90,8 +90,11 @@ export default function ResumeCraftPage() {
     });
 
     try {
+      // Dynamically import the pdf function from @react-pdf/renderer
+      const { pdf: reactPdfRendererPdfFunction } = await import('@react-pdf/renderer');
+      
       const doc = <ResumePdfDocument data={resumeData} />;
-      const blob = await pdf(doc).toBlob();
+      const blob = await reactPdfRendererPdfFunction(doc).toBlob(); // Use the dynamically imported function
       
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
@@ -108,9 +111,10 @@ export default function ResumeCraftPage() {
       });
     } catch (error) {
       console.error("Error generating PDF:", error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       toast({
         title: "PDF Generation Failed",
-        description: "Could not generate the PDF. Please try again.",
+        description: `Could not generate the PDF. Please try again. Error: ${errorMessage}`,
         variant: "destructive",
       });
     } finally {
@@ -129,7 +133,6 @@ export default function ResumeCraftPage() {
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-background to-muted/30 overflow-hidden print:bg-white print:h-auto">
-      {/* Print-specific styles are removed as we now directly generate PDF */}
       <header className="p-3 md:p-4 border-b border-border/50 shadow-sm bg-card/70 backdrop-blur-md sticky top-0 z-20">
         <div className="container mx-auto flex items-center justify-between max-w-full px-2 sm:px-4">
           <div className="flex items-center gap-2">
