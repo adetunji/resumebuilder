@@ -8,33 +8,33 @@ body {
 
 @layer base {
   :root {
-    --background: 53 100% 94%; /* Creamy White */
+    --background: 0 0% 93%; /* #EEEEEE */
     --foreground: 0 0% 3.9%; /* Dark Gray/Black */
 
-    --card: 53 100% 94%;
-    --card-foreground: 0 0% 3.9%;
+    --card: 0 0% 93%; /* #EEEEEE */
+    --card-foreground: 0 0% 3.9%; /* Dark Gray/Black */
 
-    --popover: 53 100% 94%;
-    --popover-foreground: 0 0% 3.9%;
+    --popover: 0 0% 93%; /* #EEEEEE */
+    --popover-foreground: 0 0% 3.9%; /* Dark Gray/Black */
 
-    --primary: 175 79% 33%; /* Dark Teal */
-    --primary-foreground: 53 100% 94%; /* Creamy White */
+    --primary: 204 36% 26%; /* #2A4759 */
+    --primary-foreground: 0 0% 98%; /* Near White */
 
-    --secondary: 173 39% 69%; /* Light Teal */
-    --secondary-foreground: 0 0% 3.9%; /* Dark Gray/Black */
+    --secondary: 204 36% 45%; /* Lighter version of primary */
+    --secondary-foreground: 0 0% 98%; /* Near White */
 
-    --muted: 173 40% 88%; /* Lighter Teal/Grayish Teal */
+    --muted: 0 0% 85%; /* Lighter Gray, slightly darker than background */
     --muted-foreground: 0 0% 45.1%; /* Medium Gray */
 
-    --accent: 178 82% 23%; /* Deep Teal */
-    --accent-foreground: 53 100% 94%; /* Creamy White */
+    --accent: 20 90% 71%; /* #F79B72 */
+    --accent-foreground: 0 0% 3.9%; /* Dark Gray/Black */
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 173 30% 80%; /* Light Teal/Gray border */
-    --input: 173 30% 88%; /* Lighter background for inputs */
-    --ring: 175 79% 33%; /* Dark Teal for focus rings */
+    --border: 0 0% 80%; /* Gray border, darker than background */
+    --input: 0 0% 88%; /* Light gray for inputs, slightly darker than background */
+    --ring: 204 36% 26%; /* #2A4759 */
 
     --radius: 0.5rem;
 
@@ -55,24 +55,24 @@ body {
     --popover: 0 0% 3.9%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 175 79% 40%; /* Dark Teal - slightly lighter for dark mode */
+    --primary: 204 36% 35%; /* Lighter #2A4759 for dark mode */
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 173 39% 60%; /* Light Teal - slightly darker for dark mode */
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 204 30% 50%; /* Medium-light blue for dark mode */
+    --secondary-foreground: 0 0% 3.9%; /* Dark for contrast */
 
     --muted: 0 0% 14.9%;
     --muted-foreground: 0 0% 63.9%;
 
-    --accent: 178 82% 30%; /* Deep Teal - slightly lighter for dark mode */
-    --accent-foreground: 0 0% 98%;
+    --accent: 20 85% 68%; /* Adapted #F79B72 for dark mode */
+    --accent-foreground: 0 0% 3.9%; /* Dark Gray/Black */
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
 
     --border: 0 0% 14.9%;
     --input: 0 0% 14.9%;
-    --ring: 175 79% 40%;
+    --ring: 204 36% 35%; /* Lighter #2A4759 for dark mode */
 
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
