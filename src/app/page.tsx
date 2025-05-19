@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -79,11 +80,11 @@ export default function ResumeCraftPage() {
   const handleDownload = () => {
     if (!isClient) return;
     toast({
-      title: "Printing Resume...",
-      description: "Your resume will be prepared for printing.",
+      title: "Preparing PDF...",
+      description: "Your resume will be prepared for download. Please use your browser's print dialog to 'Save as PDF'.",
     });
     
-    // Simple print functionality
+    // This uses the browser's print functionality which typically includes a "Save as PDF" option.
     setTimeout(() => { // Delay to allow toast to show
         window.print();
     }, 500);
@@ -157,7 +158,7 @@ export default function ResumeCraftPage() {
               <Icons.save className="mr-2 h-4 w-4" /> Save Progress
             </Button>
             <Button onClick={handleDownload} variant="default" size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground">
-              <Icons.download className="mr-2 h-4 w-4" /> Print / PDF
+              <Icons.download className="mr-2 h-4 w-4" /> Download PDF
             </Button>
           </div>
         </div>
