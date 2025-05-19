@@ -3,6 +3,7 @@ import type React from 'react';
 import type { ResumeData } from '@/lib/types';
 import { TemplateSection, ContactInfo, WorkExperienceItem, EducationItem, SkillsList } from './base-template-components';
 import Image from 'next/image';
+import { Icons } from '@/components/icons'; // Added this import
 
 interface CreativeTemplateProps {
   data: ResumeData;
