@@ -120,7 +120,7 @@ const ResumePdfDocument: React.FC<{ data: ResumeData }> = ({ data }) => {
   const { personalInfo, summary, workExperience, education, skills } = data;
 
   // A simple way to format dates, you might want something more robust
-  const formatDate = (dateStr: string) => {
+  const formatDate = (dateStr: string | undefined) => {
     if (!dateStr || dateStr.toLowerCase() === 'present') return 'Present';
     try {
       const [year, month] = dateStr.split('-');
@@ -132,7 +132,7 @@ const ResumePdfDocument: React.FC<{ data: ResumeData }> = ({ data }) => {
   };
   
   return (
-  <Document title={`${personalInfo.fullName} - Resume`} author={personalInfo.fullName}>
+  <Document title={`${personalInfo.fullName || 'Resume'} - Resume`} author={personalInfo.fullName || 'User'}>
     <Page size="A4" style={styles.page}>
       {/* Basic Profile Image - Example, adapt as needed */}
       {/* This assumes one of the templates might have a concept of profile image */}
@@ -147,37 +147,37 @@ const ResumePdfDocument: React.FC<{ data: ResumeData }> = ({ data }) => {
         <Text style={styles.jobTitle}>{personalInfo.jobTitle || "Your Job Title"}</Text>
         <View style={styles.contactInfo}>
           {personalInfo.email && <Text style={styles.contactItem}>{personalInfo.email}</Text>}
-          {personalInfo.phoneNumber && <Text style={styles.contactItem}>{(personalInfo.email ? '• ' : '') + personalInfo.phoneNumber}</Text>}
-          {personalInfo.address && <Text style={styles.contactItem}>{(personalInfo.email || personalInfo.phoneNumber ? '• ' : '') + personalInfo.address}</Text>}
+          {personalInfo.phoneNumber && <Text style={styles.contactItem}>{(personalInfo.email ? '• ' : '') + (personalInfo.phoneNumber || '')}</Text>}
+          {personalInfo.address && <Text style={styles.contactItem}>{(personalInfo.email || personalInfo.phoneNumber ? '• ' : '') + (personalInfo.address || '')}</Text>}
         </View>
         <View style={styles.contactInfo}>
-           {personalInfo.linkedin && <Text style={styles.contactItem}>LinkedIn: {personalInfo.linkedin}</Text>}
-           {personalInfo.github && <Text style={styles.contactItem}>GitHub: {personalInfo.github}</Text>}
-           {personalInfo.portfolio && <Text style={styles.contactItem}>Portfolio: {personalInfo.portfolio}</Text>}
+           {personalInfo.linkedin && <Text style={styles.contactItem}>LinkedIn: {personalInfo.linkedin || ''}</Text>}
+           {personalInfo.github && <Text style={styles.contactItem}>GitHub: {personalInfo.github || ''}</Text>}
+           {personalInfo.portfolio && <Text style={styles.contactItem}>Portfolio: {personalInfo.portfolio || ''}</Text>}
         </View>
       </View>
 
       {summary && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Summary</Text>
-          <Text style={styles.paragraph}>{summary}</Text>
+          <Text style={styles.paragraph}>{summary || ''}</Text>
         </View>
       )}
 
-      {workExperience.length > 0 && (
+      {workExperience && workExperience.length > 0 && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Work Experience</Text>
           {workExperience.map((exp: WorkExperienceEntry) => (
             <View key={exp.id} style={styles.entry}>
               <View style={styles.entryHeader}>
-                <Text style={styles.entryTitle}>{exp.jobTitle}</Text>
+                <Text style={styles.entryTitle}>{exp.jobTitle || ''}</Text>
                 <Text style={styles.entryDate}>{formatDate(exp.startDate)} - {formatDate(exp.endDate)}</Text>
               </View>
               <View style={styles.entryHeader}>
-                <Text style={styles.entrySubtitle}>{exp.company}</Text>
-                <Text style={styles.entryLocation}>{exp.location}</Text>
+                <Text style={styles.entrySubtitle}>{exp.company || ''}</Text>
+                <Text style={styles.entryLocation}>{exp.location || ''}</Text>
               </View>
-              {exp.description.split('\n').map((line, i) => line.trim() && (
+              {(exp.description || '').split('\n').map((line, i) => line.trim() && (
                 <Text key={i} style={styles.listItem}>• {line.trim().replace(/^- /, '')}</Text>
               ))}
             </View>
@@ -185,20 +185,20 @@ const ResumePdfDocument: React.FC<{ data: ResumeData }> = ({ data }) => {
         </View>
       )}
 
-      {education.length > 0 && (
+      {education && education.length > 0 && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Education</Text>
           {education.map((edu: EducationEntry) => (
             <View key={edu.id} style={styles.entry}>
                <View style={styles.entryHeader}>
-                <Text style={styles.entryTitle}>{edu.degree}</Text>
+                <Text style={styles.entryTitle}>{edu.degree || ''}</Text>
                 <Text style={styles.entryDate}>{formatDate(edu.graduationDate)}</Text>
               </View>
                <View style={styles.entryHeader}>
-                 <Text style={styles.entrySubtitle}>{edu.institution}</Text>
-                 <Text style={styles.entryLocation}>{edu.location}</Text>
+                 <Text style={styles.entrySubtitle}>{edu.institution || ''}</Text>
+                 <Text style={styles.entryLocation}>{edu.location || ''}</Text>
               </View>
-              {edu.details && <Text style={styles.paragraph}>{edu.details}</Text>}
+              {edu.details && <Text style={styles.paragraph}>{edu.details || ''}</Text>}
             </View>
           ))}
         </View>
@@ -208,7 +208,7 @@ const ResumePdfDocument: React.FC<{ data: ResumeData }> = ({ data }) => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Skills</Text>
           <View style={styles.skillsContainer}>
-            {skills.split(/[,;\n]+/).map((skill, i) => skill.trim() && (
+            {(skills || '').split(/[,;\n]+/).map((skill, i) => skill.trim() && (
               <Text key={i} style={styles.skill}>{skill.trim()}</Text>
             ))}
           </View>

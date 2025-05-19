@@ -94,11 +94,24 @@ export default function ResumeCraftPage() {
       const { pdf: reactPdfRendererPdfFunction } = await import('@react-pdf/renderer');
       
       const doc = <ResumePdfDocument data={resumeData} />;
-      const blob = await reactPdfRendererPdfFunction(doc).toBlob(); // Use the dynamically imported function
+      const pdfInstance = reactPdfRendererPdfFunction(doc);
+
+      if (!pdfInstance) {
+        console.error("Error: react-pdf's pdf() function returned undefined. This can happen if there's an issue with the document structure or data passed to ResumePdfDocument.", { resumeData });
+        toast({
+            title: "PDF Generation Error",
+            description: "Failed to initialize PDF renderer. The document structure might be invalid or contain incompatible data.",
+            variant: "destructive",
+        });
+        setIsDownloading(false);
+        return;
+      }
+      
+      const blob = await pdfInstance.toBlob(); 
       
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      const fileName = `${resumeData.personalInfo.fullName.replace(/\s+/g, '_') || 'resume'}_${selectedTemplateId}.pdf`;
+      const fileName = `${(resumeData.personalInfo.fullName || 'resume').replace(/\s+/g, '_')}_${selectedTemplateId}.pdf`;
       link.download = fileName;
       document.body.appendChild(link);
       link.click();
