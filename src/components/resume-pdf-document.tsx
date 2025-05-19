@@ -1,7 +1,7 @@
 
 "use client";
 import React from 'react';
-import { Page, Text, View, Document, StyleSheet, Font, Image } from '@react-pdf/renderer';
+import { Page, Text, View, Document, StyleSheet } from '@react-pdf/renderer';
 import type { ResumeData, WorkExperienceEntry, EducationEntry } from '@/lib/types';
 
 // Register fonts - Optional: If you want to use custom fonts, you need to register them.
@@ -117,47 +117,64 @@ const styles = StyleSheet.create({
 });
 
 const ResumePdfDocument: React.FC<{ data: ResumeData }> = ({ data }) => {
-  const { personalInfo, summary, workExperience, education, skills } = data;
+  const { personalInfo, summary, workExperience, education, skills } = data || {};
 
-  // A simple way to format dates, you might want something more robust
-  const formatDate = (dateStr: string | undefined) => {
-    if (!dateStr || dateStr.toLowerCase() === 'present') return 'Present';
+  const formatDate = (dateStr: string | undefined): string => {
+    if (!dateStr || typeof dateStr !== 'string') return 'N/A';
+    const lowerDateStr = dateStr.toLowerCase();
+    if (lowerDateStr === 'present' || lowerDateStr === '') return 'Present'; // Treat empty string as 'Present' or 'N/A'
+    
     try {
-      const [year, month] = dateStr.split('-');
-      const date = new Date(parseInt(year), parseInt(month) - 1);
-      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
-    } catch {
-      return dateStr;
+      const parts = dateStr.split('-');
+      const yearStr = parts[0];
+      const monthStr = parts[1];
+
+      if (!yearStr || !monthStr) { // Basic check for YYYY-MM format
+        return dateStr; // Return original if not in expected format
+      }
+
+      const year = parseInt(yearStr, 10);
+      const month = parseInt(monthStr, 10);
+
+      if (isNaN(year) || isNaN(month) || month < 1 || month > 12) {
+        return dateStr; // Return original if parsing fails or month is invalid
+      }
+      
+      const dateObj = new Date(year, month - 1);
+      if (isNaN(dateObj.getTime())) {
+        return dateStr; // Return original if date object is invalid
+      }
+      return dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+    } catch (e) {
+      return dateStr; // Fallback to original string in case of any error
     }
   };
   
+  // Ensure personalInfo exists and has fallback values
+  const pi = personalInfo || {
+    fullName: '', jobTitle: '', email: '', phoneNumber: '', address: '',
+    linkedin: '', github: '', portfolio: ''
+  };
+
   return (
-  <Document title={`${personalInfo.fullName || 'Resume'} - Resume`} author={personalInfo.fullName || 'User'}>
+  <Document title={`${pi.fullName || 'Resume'} - Resume`} author={pi.fullName || 'User'}>
     <Page size="A4" style={styles.page}>
-      {/* Basic Profile Image - Example, adapt as needed */}
-      {/* This assumes one of the templates might have a concept of profile image */}
-      {/* For the creative template, it uses picsum.photos */}
-      {/* {selectedTemplateId === 'creative' && (
-        <Image style={styles.profileImage} src={`https://placehold.co/100x100.png`} data-ai-hint="profile person" />
-      )} */}
-
-
       <View style={styles.header}>
-        <Text style={styles.fullName}>{personalInfo.fullName || "Your Name"}</Text>
-        <Text style={styles.jobTitle}>{personalInfo.jobTitle || "Your Job Title"}</Text>
+        <Text style={styles.fullName}>{pi.fullName || "Your Name"}</Text>
+        <Text style={styles.jobTitle}>{pi.jobTitle || "Your Job Title"}</Text>
         <View style={styles.contactInfo}>
-          {personalInfo.email && <Text style={styles.contactItem}>{personalInfo.email}</Text>}
-          {personalInfo.phoneNumber && <Text style={styles.contactItem}>{(personalInfo.email ? '• ' : '') + (personalInfo.phoneNumber || '')}</Text>}
-          {personalInfo.address && <Text style={styles.contactItem}>{(personalInfo.email || personalInfo.phoneNumber ? '• ' : '') + (personalInfo.address || '')}</Text>}
+          {pi.email && <Text style={styles.contactItem}>{pi.email}</Text>}
+          {pi.phoneNumber && <Text style={styles.contactItem}>{(pi.email ? '• ' : '') + (pi.phoneNumber || '')}</Text>}
+          {pi.address && <Text style={styles.contactItem}>{(pi.email || pi.phoneNumber ? '• ' : '') + (pi.address || '')}</Text>}
         </View>
         <View style={styles.contactInfo}>
-           {personalInfo.linkedin && <Text style={styles.contactItem}>LinkedIn: {personalInfo.linkedin || ''}</Text>}
-           {personalInfo.github && <Text style={styles.contactItem}>GitHub: {personalInfo.github || ''}</Text>}
-           {personalInfo.portfolio && <Text style={styles.contactItem}>Portfolio: {personalInfo.portfolio || ''}</Text>}
+           {pi.linkedin && <Text style={styles.contactItem}>LinkedIn: {pi.linkedin || ''}</Text>}
+           {pi.github && <Text style={styles.contactItem}>GitHub: {pi.github || ''}</Text>}
+           {pi.portfolio && <Text style={styles.contactItem}>Portfolio: {pi.portfolio || ''}</Text>}
         </View>
       </View>
 
-      {summary && (
+      {(summary || '') && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Summary</Text>
           <Text style={styles.paragraph}>{summary || ''}</Text>
@@ -167,7 +184,7 @@ const ResumePdfDocument: React.FC<{ data: ResumeData }> = ({ data }) => {
       {workExperience && workExperience.length > 0 && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Work Experience</Text>
-          {workExperience.map((exp: WorkExperienceEntry) => (
+          {workExperience.map((exp: WorkExperienceEntry | null) => exp && (
             <View key={exp.id} style={styles.entry}>
               <View style={styles.entryHeader}>
                 <Text style={styles.entryTitle}>{exp.jobTitle || ''}</Text>
@@ -177,9 +194,12 @@ const ResumePdfDocument: React.FC<{ data: ResumeData }> = ({ data }) => {
                 <Text style={styles.entrySubtitle}>{exp.company || ''}</Text>
                 <Text style={styles.entryLocation}>{exp.location || ''}</Text>
               </View>
-              {(exp.description || '').split('\n').map((line, i) => line.trim() && (
-                <Text key={i} style={styles.listItem}>• {line.trim().replace(/^- /, '')}</Text>
-              ))}
+              {(exp.description || '').toString().split('\n').map((line, i) => {
+                const trimmedLine = line.trim();
+                return trimmedLine && (
+                  <Text key={i} style={styles.listItem}>• {trimmedLine.replace(/^- /, '')}</Text>
+                );
+              })}
             </View>
           ))}
         </View>
@@ -188,7 +208,7 @@ const ResumePdfDocument: React.FC<{ data: ResumeData }> = ({ data }) => {
       {education && education.length > 0 && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Education</Text>
-          {education.map((edu: EducationEntry) => (
+          {education.map((edu: EducationEntry | null) => edu && (
             <View key={edu.id} style={styles.entry}>
                <View style={styles.entryHeader}>
                 <Text style={styles.entryTitle}>{edu.degree || ''}</Text>
@@ -198,19 +218,22 @@ const ResumePdfDocument: React.FC<{ data: ResumeData }> = ({ data }) => {
                  <Text style={styles.entrySubtitle}>{edu.institution || ''}</Text>
                  <Text style={styles.entryLocation}>{edu.location || ''}</Text>
               </View>
-              {edu.details && <Text style={styles.paragraph}>{edu.details || ''}</Text>}
+              {(edu.details || '') && <Text style={styles.paragraph}>{edu.details || ''}</Text>}
             </View>
           ))}
         </View>
       )}
 
-      {skills && (
+      {(skills || '') && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Skills</Text>
           <View style={styles.skillsContainer}>
-            {(skills || '').split(/[,;\n]+/).map((skill, i) => skill.trim() && (
-              <Text key={i} style={styles.skill}>{skill.trim()}</Text>
-            ))}
+            {(skills || '').toString().split(/[,;\n]+/).map((skill, i) => {
+              const trimmedSkill = skill.trim();
+              return trimmedSkill && (
+                <Text key={i} style={styles.skill}>{trimmedSkill}</Text>
+              );
+            })}
           </View>
         </View>
       )}
@@ -220,3 +243,4 @@ const ResumePdfDocument: React.FC<{ data: ResumeData }> = ({ data }) => {
 };
 
 export default ResumePdfDocument;
+
