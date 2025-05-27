@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -11,6 +10,7 @@ import { Icons } from '@/components/icons';
 import { useToast } from "@/hooks/use-toast";
 // Removed static import: import { pdf } from '@react-pdf/renderer';
 import ResumePdfDocument from '@/components/resume-pdf-document';
+import { GlobalHeader } from '@/components/global-header';
 
 const initialResumeData: ResumeData = {
   personalInfo: {
@@ -146,33 +146,24 @@ export default function ResumeCraftPage() {
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-background to-muted/30 overflow-hidden print:bg-white print:h-auto">
-      <header className="p-3 md:p-4 border-b border-border/50 shadow-sm bg-card/70 backdrop-blur-md sticky top-0 z-20">
-        <div className="container mx-auto flex items-center justify-between max-w-full px-2 sm:px-4">
-          <div className="flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" className="h-8 w-8 text-primary">
-              <rect width="256" height="256" fill="none"/>
-              <path d="M208,96H48a8,8,0,0,0-8,8V208a8,8,0,0,0,8,8H208a8,8,0,0,0,8-8V104A8,8,0,0,0,208,96ZM184,40H72A16,16,0,0,0,56,56v8h8V56a8,8,0,0,1,8-8H184a8,8,0,0,1,8,8v8h8V56A16,16,0,0,0,184,40Z" fill="currentColor"/>
-            </svg>
-            <h1 className="text-xl md:text-2xl font-bold text-primary">ResumeCraft <span className="text-accent">AI</span></h1>
-          </div>
-          <div className="flex items-center gap-2 md:gap-4">
-            <TemplateSelector selectedTemplate={selectedTemplateId} onTemplateChange={setSelectedTemplateId} />
-            <Button onClick={handleSaveData} variant="outline" size="sm" className="hidden sm:inline-flex">
-              <Icons.save className="mr-2 h-4 w-4" /> Save Progress
-            </Button>
-            <Button 
-              onClick={handleDownload} 
-              variant="default" 
-              size="sm" 
-              className="bg-accent hover:bg-accent/90 text-accent-foreground"
-              disabled={isDownloading}
-            >
-              {isDownloading ? <Icons.loader className="mr-2 h-4 w-4 animate-spin" /> : <Icons.download className="mr-2 h-4 w-4" />}
-              {isDownloading ? "Downloading..." : "Download PDF"}
-            </Button>
-          </div>
+      <GlobalHeader>
+        <div className="flex items-center gap-2 md:gap-4">
+          <TemplateSelector selectedTemplate={selectedTemplateId} onTemplateChange={setSelectedTemplateId} />
+          <Button onClick={handleSaveData} variant="outline" size="sm" className="hidden sm:inline-flex">
+            <Icons.save className="mr-2 h-4 w-4" /> Save Progress
+          </Button>
+          <Button 
+            onClick={handleDownload} 
+            variant="default" 
+            size="sm" 
+            className="bg-accent hover:bg-accent/90 text-accent-foreground"
+            disabled={isDownloading}
+          >
+            {isDownloading ? <Icons.loader className="mr-2 h-4 w-4 animate-spin" /> : <Icons.download className="mr-2 h-4 w-4" />}
+            {isDownloading ? "Downloading..." : "Download PDF"}
+          </Button>
         </div>
-      </header>
+      </GlobalHeader>
 
       <main className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-0 overflow-hidden">
         <div className="editor-column h-full overflow-y-auto p-0 md:p-2 bg-background/30 md:bg-transparent">
@@ -182,7 +173,8 @@ export default function ResumeCraftPage() {
           <ResumePreview resumeData={resumeData} selectedTemplateId={selectedTemplateId} />
         </div>
       </main>
-       <footer className="p-2 border-t border-border/50 text-center text-xs text-muted-foreground bg-card/70 backdrop-blur-md">
+
+      <footer className="p-2 border-t border-border/50 text-center text-xs text-muted-foreground bg-card/70 backdrop-blur-md">
         ResumeCraft AI &copy; {new Date().getFullYear()} - Build your future, one resume at a time.
       </footer>
     </div>
