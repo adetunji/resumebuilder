@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import type { ResumeData, TemplateId } from '@/lib/types';
-import { ResumeEditor } from '@/components/resume-editor';
-import { ResumePreview } from '@/components/resume-preview';
-import { TemplateSelector } from '@/components/template-selector';
+import { ResumeEditor } from '@/components/builder/resume-editor';
+import { ResumePreview } from '@/components/builder/resume-preview';
+import { TemplateSelector } from '@/components/builder/template-selector';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import { useToast } from "@/hooks/use-toast";
 // Removed static import: import { pdf } from '@react-pdf/renderer';
-import ResumePdfDocument from '@/components/resume-pdf-document';
+import ResumePdfDocument from '@/components/builder/resume-pdf-document';
 import { GlobalHeader } from '@/components/global-header';
 
 const initialResumeData: ResumeData = {

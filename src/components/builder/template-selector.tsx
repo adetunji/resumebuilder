@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Icons } from "./icons";
+import { Icons } from "@/components/icons";
 
 interface TemplateSelectorProps {
   selectedTemplate: TemplateId;
