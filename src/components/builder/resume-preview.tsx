@@ -3,7 +3,7 @@
 import type { ResumeData, TemplateId } from "@/lib/types";
 import { templates } from "./templates";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Icons } from "./icons";
+import { Icons } from "@/components/icons";
 import { useEffect, useState, memo } from "react";
 
 interface ResumePreviewProps {
