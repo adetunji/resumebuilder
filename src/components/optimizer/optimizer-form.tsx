@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, type FormEvent, useEffect } from "react";
@@ -71,6 +72,7 @@ const HighlightedContent = React.memo(({ text, keywordsToHighlight, highlightLog
 });
 HighlightedContent.displayName = 'HighlightedContent';
 
+
 export default function OptimizerForm() {
   const [resumeText, setResumeText] = useState<string>("");
   const [editableResumeText, setEditableResumeText] = useState<string>("");
@@ -85,6 +87,7 @@ export default function OptimizerForm() {
         setEditableResumeText(resumeText);
     }
   }, [analysisResult, resumeText]);
+
 
   const handleAnalyze = async (e: FormEvent) => {
     e.preventDefault();
@@ -160,6 +163,7 @@ export default function OptimizerForm() {
     document.body.removeChild(link);
     toast({ title: "Success", description: "Resume downloaded as optimized_resume.txt" });
   };
+  
 
   return (
     <div className="container mx-auto p-4 md:p-8">
@@ -246,112 +250,159 @@ export default function OptimizerForm() {
             )}
           </Button>
         </div>
+      </form>
 
-        {analysisResult && (
-          <div className="space-y-8">
+      {analysisResult && (
+        <section id="analysis-results" className="mt-12 space-y-8">
+          <Card className="shadow-xl rounded-xl">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-2xl">
+                    <FilePenLine className="text-accent" /> Edit & Optimize Your Resume
+                </CardTitle>
+                <CardDescription>Refine your resume using the analysis below. Click "Analyze Resume" again to re-evaluate your changes.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Label htmlFor="editableResumeText" className="font-semibold mb-2 block">Editable Resume:</Label>
+                <Textarea
+                    id="editableResumeText"
+                    value={editableResumeText}
+                    onChange={(e) => setEditableResumeText(e.target.value)}
+                    rows={20}
+                    className="resize-none border-input focus:border-accent focus:ring-accent rounded-md mb-4"
+                    placeholder="Your resume text will appear here for editing after the first analysis."
+                />
+                <CardDescription className="mb-2 text-sm">Preview with keyword highlights (matched are green, missing are orange):</CardDescription>
+                 <ScrollArea className="h-72 w-full rounded-md border p-4 bg-muted/50">
+                    <div className="text-sm text-foreground whitespace-pre-wrap">
+                        <HighlightedContent 
+                            text={editableResumeText} 
+                            keywordsToHighlight={[...new Set([...analysisResult.matchedKeywords, ...analysisResult.missingKeywords])]} 
+                            highlightLogic={(keyword) => { 
+                                const lowerKeyword = keyword.toLowerCase();
+                                if (analysisResult.matchedKeywords.some(mk => mk.toLowerCase() === lowerKeyword)) {
+                                    return "bg-green-500/30 text-green-900 dark:text-green-200";
+                                }
+                                return "bg-orange-500/30 text-orange-900 dark:text-orange-200";
+                            }}
+                        />
+                    </div>
+                </ScrollArea>
+            </CardContent>
+            <CardFooter>
+                <Button onClick={handleDownload} variant="outline" className="border-accent text-accent hover:bg-accent/10 hover:text-accent rounded-md">
+                    <Download className="mr-2 h-4 w-4" /> Download Updated Resume
+                </Button>
+            </CardFooter>
+          </Card>
+
+          <Card className="shadow-lg rounded-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Target className="text-accent h-6 w-6" /> Keyword Match Score
+              </CardTitle>
+              <CardDescription>Percentage of job description keywords found in your current resume.</CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <p className="text-5xl font-bold text-primary mb-3">{analysisResult.matchScore.toFixed(0)}%</p>
+              <Progress value={analysisResult.matchScore} className="w-full h-4 rounded-full shadow-inner" />
+              {analysisResult.matchScore < 70 && (
+                <p className="text-sm text-orange-600 dark:text-orange-400 mt-3">
+                  Aim for a score of 70% or higher for better ATS compatibility. Consider incorporating more missing keywords.
+                </p>
+              )}
+              {analysisResult.matchScore >= 70 && analysisResult.matchScore < 90 && (
+                <p className="text-sm text-green-600 dark:text-green-400 mt-3">
+                  Good job! This score indicates good ATS compatibility. You can still aim higher!
+                </p>
+              )}
+              {analysisResult.matchScore >= 90 && (
+                 <p className="text-sm text-green-700 dark:text-green-300 font-semibold mt-3">
+                  Excellent! Your resume is highly aligned with the job description keywords.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+          
+          <Separator className="my-10" />
+
+          <div className="grid md:grid-cols-2 gap-8">
             <Card className="shadow-lg rounded-xl">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-2xl">
-                  <Target className="text-accent" /> Analysis Results
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Tags className="text-accent" /> Keyword Analysis
                 </CardTitle>
-                <CardDescription>Here's how your resume matches the job description.</CardDescription>
+                <CardDescription>Keywords from the job description and their status in your (editable) resume.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label>Keyword Match Score</Label>
-                    <span className="text-sm font-medium">{analysisResult.matchScore.toFixed(1)}%</span>
-                  </div>
-                  <Progress value={analysisResult.matchScore} className="h-2" />
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div>
-                      <Label className="flex items-center gap-2 text-sm font-medium">
-                        <CheckCircle className="h-4 w-4 text-green-500" /> Matched Keywords
-                      </Label>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {analysisResult.matchedKeywords.map((keyword) => (
-                          <Badge key={keyword} variant="secondary" className="bg-green-100 text-green-800">
-                            {keyword}
-                          </Badge>
+                <div>
+                  <h4 className="font-semibold text-lg mb-2 flex items-center gap-1"><CheckCircle className="text-green-600 dark:text-green-400 h-5 w-5" />Matched Keywords ({analysisResult.matchedKeywords.length})</h4>
+                  {analysisResult.matchedKeywords.length > 0 ? (
+                    <ScrollArea className="h-40 rounded-md border p-3 bg-muted/30">
+                        <div className="flex flex-wrap gap-2">
+                        {analysisResult.matchedKeywords.map(keyword => (
+                            <Badge key={keyword} variant="secondary" className="bg-green-100 dark:bg-green-800/30 text-green-700 dark:text-green-300 border-green-300 dark:border-green-600 text-sm px-3 py-1 rounded-md">{keyword}</Badge>
                         ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <Label className="flex items-center gap-2 text-sm font-medium">
-                        <AlertTriangle className="h-4 w-4 text-amber-500" /> Missing Keywords
-                      </Label>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {analysisResult.missingKeywords.map((keyword) => (
-                          <Badge key={keyword} variant="secondary" className="bg-amber-100 text-amber-800">
-                            {keyword}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {analysisResult.aiSuggestions.length > 0 && (
-                  <div className="space-y-4">
-                    <Label className="flex items-center gap-2 text-sm font-medium">
-                      <Lightbulb className="h-4 w-4 text-accent" /> AI Suggestions
-                    </Label>
-                    <ScrollArea className="h-[300px] rounded-md border p-4">
-                      <div className="space-y-4">
-                        {analysisResult.aiSuggestions.map((suggestion, index) => (
-                          <div key={index} className="space-y-2">
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline" className="bg-accent/10 text-accent">
-                                {suggestion.keyword}
-                              </Badge>
-                              <span className="text-sm text-muted-foreground">
-                                Suggested placement:
-                              </span>
-                            </div>
-                            <p className="text-sm">
-                              <HighlightedContent
-                                text={suggestion.suggestion}
-                                keywordsToHighlight={[suggestion.keyword]}
-                                highlightLogic={() => "bg-accent/20 text-accent-foreground"}
-                              />
-                            </p>
-                            <Separator className="my-2" />
-                          </div>
-                        ))}
-                      </div>
+                        </div>
                     </ScrollArea>
+                  ) : (
+                    <p className="text-muted-foreground italic p-3 border rounded-md bg-muted/30">No keywords currently matched. Add keywords from the "Missing" list.</p>
+                  )}
+                </div>
+                <div>
+                  <h4 className="font-semibold text-lg mb-2 flex items-center gap-1"><AlertTriangle className="text-orange-600 dark:text-orange-400 h-5 w-5" />Missing Keywords ({analysisResult.missingKeywords.length})</h4>
+                   {analysisResult.missingKeywords.length > 0 ? (
+                    <ScrollArea className="h-40 rounded-md border p-3 bg-muted/30">
+                        <div className="flex flex-wrap gap-2">
+                        {analysisResult.missingKeywords.map(keyword => (
+                            <Badge key={keyword} variant="outline" className="border-orange-400 dark:border-orange-600 text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-800/30 text-sm px-3 py-1 rounded-md">{keyword}</Badge>
+                        ))}
+                        </div>
+                    </ScrollArea>
+                   ) : (
+                    <p className="text-muted-foreground italic p-3 border rounded-md bg-muted/30">Great! All identified keywords from the job description appear to be in your resume.</p>
+                   )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg rounded-xl">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Lightbulb className="text-accent" /> AI Keyword Suggestions
+                </CardTitle>
+                 <CardDescription>
+                  {analysisResult.aiSuggestions.length > 0 
+                    ? "AI suggestions for incorporating missing keywords naturally."
+                    : "No missing keywords to provide suggestions for, or AI could not generate suggestions."}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {analysisResult.aiSuggestions.length > 0 ? (
+                  <ScrollArea className="h-[23.5rem] rounded-md"> 
+                    <div className="space-y-4">
+                      {analysisResult.aiSuggestions.map((suggestion, index) => (
+                        <Card key={index} className="bg-muted/50 p-4 rounded-lg shadow-sm border">
+                           <div className="font-semibold text-md text-primary mb-1">
+                            For keyword: <Badge variant="default" className="bg-accent text-accent-foreground text-sm px-2 py-0.5 rounded-md">{suggestion.keyword}</Badge>
+                          </div>
+                          <p className="text-sm text-foreground">{suggestion.placementSuggestion}</p>
+                        </Card>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                ) : (
+                  <div className="text-muted-foreground italic text-center py-10 p-3 border rounded-md bg-muted/30 h-[23.5rem] flex items-center justify-center">
+                    <p>
+                    {analysisResult.missingKeywords.length === 0 ? "Excellent! No missing keywords found." : "No AI suggestions available for the current set of missing keywords."}
+                    </p>
                   </div>
                 )}
               </CardContent>
-              <CardFooter className="flex justify-end gap-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setEditableResumeText(resumeText);
-                    setAnalysisResult(null);
-                  }}
-                >
-                  Reset
-                </Button>
-                <Button
-                  type="button"
-                  onClick={handleDownload}
-                  className="bg-accent hover:bg-accent/90 text-accent-foreground"
-                >
-                  <Download className="mr-2 h-4 w-4" /> Download Optimized Resume
-                </Button>
-              </CardFooter>
             </Card>
           </div>
-        )}
-      </form>
+        </section>
+      )}
     </div>
   );
-} 
+}
+
