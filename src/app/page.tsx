@@ -11,43 +11,9 @@ import { useToast } from "@/hooks/use-toast";
 // Removed static import: import { pdf } from '@react-pdf/renderer';
 import ResumePdfDocument from '@/components/builder/resume-pdf-document';
 import { GlobalHeader } from '@/components/global-header';
-
-const initialResumeData: ResumeData = {
-  personalInfo: {
-    fullName: 'John Doe',
-    jobTitle: 'Software Engineer',
-    email: 'john.doe@example.com',
-    phoneNumber: '555-123-4567',
-    address: '123 Main St, Anytown, USA',
-    linkedin: 'https://linkedin.com/in/johndoe',
-    github: 'https://github.com/johndoe',
-    portfolio: 'https://johndoe.dev',
-  },
-  summary: 'Highly motivated and results-oriented software engineer with 5+ years of experience in developing and deploying web applications. Proficient in JavaScript, React, and Node.js. Passionate about creating innovative solutions and collaborating with cross-functional teams.',
-  workExperience: [
-    {
-      id: 'we1',
-      jobTitle: 'Senior Software Engineer',
-      company: 'Tech Solutions Inc.',
-      location: 'San Francisco, CA',
-      startDate: '2021-06',
-      endDate: 'Present',
-      description: '- Led the development of a new e-commerce platform, resulting in a 20% increase in sales.\n- Mentored junior engineers and conducted code reviews.\n- Collaborated with product managers to define project requirements.',
-    },
-  ],
-  education: [
-    {
-      id: 'edu1',
-      degree: 'B.S. in Computer Science',
-      institution: 'University of Example',
-      location: 'Example City, USA',
-      graduationDate: '2019-05',
-      details: 'GPA: 3.8, Magna Cum Laude',
-    },
-  ],
-  skills: 'JavaScript, React, Node.js, Python, SQL, AWS, Docker, Agile Methodologies',
-};
-
+import { saveResume, getResume } from '@/lib/resumeService';
+import { templates } from '@/components/builder/templates';
+import { initialResumeData } from '@/lib/initialData';
 
 export default function ResumeCraftPage() {
   const [resumeData, setResumeData] = useState<ResumeData>(initialResumeData);
@@ -55,29 +21,67 @@ export default function ResumeCraftPage() {
   const [isClient, setIsClient] = useState(false);
   const { toast } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // For demo purposes, using a fixed userId. In a real app, this would come from authentication
+  const userId = 'demo-user';
 
   useEffect(() => {
     setIsClient(true);
-    const savedData = localStorage.getItem('resumeCraftData');
-    if (savedData) {
-      try {
-        const parsedData = JSON.parse(savedData);
-        setResumeData(parsedData.resumeData || initialResumeData);
-        setSelectedTemplateId(parsedData.selectedTemplateId || 'modern');
-      } catch (error) {
-        console.error("Failed to parse saved data from localStorage", error);
-        localStorage.removeItem('resumeCraftData');
-      }
-    }
+    loadResumeData();
   }, []);
 
-  const handleSaveData = () => {
+  const loadResumeData = async () => {
+    try {
+      const result = await getResume(userId);
+      if (result.success && result.data) {
+        setResumeData(result.data.resumeData);
+        // Ensure the template ID is a valid TemplateId
+        const templateId = result.data.templateId as TemplateId;
+        if (Object.keys(templates).includes(templateId)) {
+          setSelectedTemplateId(templateId);
+        } else {
+          console.warn('Invalid template ID from database, using default');
+          setSelectedTemplateId('modern');
+        }
+      } else {
+        // If no resume found, use initial data
+        console.log('No saved resume found, using initial data');
+      }
+    } catch (error) {
+      console.error('Error loading resume:', error);
+      toast({
+        title: "Error Loading Resume",
+        description: "Could not load your saved resume. Using initial data instead.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSaveData = async () => {
     if (!isClient) return;
-    localStorage.setItem('resumeCraftData', JSON.stringify({ resumeData, selectedTemplateId }));
-    toast({
-      title: "Progress Saved!",
-      description: "Your resume data has been saved locally in your browser.",
-    });
+    
+    setIsSaving(true);
+    try {
+      const result = await saveResume(userId, resumeData, selectedTemplateId);
+      if (result.success) {
+        toast({
+          title: "Progress Saved!",
+          description: "Your resume data has been saved to the cloud.",
+        });
+      } else {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.error('Error saving resume:', error);
+      toast({
+        title: "Error Saving Resume",
+        description: "Could not save your resume. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDownload = async () => {
@@ -149,8 +153,19 @@ export default function ResumeCraftPage() {
       <GlobalHeader>
         <div className="flex items-center gap-2 md:gap-4">
           <TemplateSelector selectedTemplate={selectedTemplateId} onTemplateChange={setSelectedTemplateId} />
-          <Button onClick={handleSaveData} variant="outline" size="sm" className="hidden sm:inline-flex">
-            <Icons.save className="mr-2 h-4 w-4" /> Save Progress
+          <Button 
+            onClick={handleSaveData} 
+            variant="outline" 
+            size="sm" 
+            className="hidden sm:inline-flex"
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <Icons.loader className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Icons.save className="mr-2 h-4 w-4" />
+            )}
+            {isSaving ? "Saving..." : "Save Progress"}
           </Button>
           <Button 
             onClick={handleDownload} 
