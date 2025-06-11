@@ -8,8 +8,6 @@ import { TemplateSelector } from '@/components/builder/template-selector';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import { useToast } from "@/hooks/use-toast";
-// Removed static import: import { pdf } from '@react-pdf/renderer';
-import ResumePdfDocument from '@/components/builder/resume-pdf-document';
 import { GlobalHeader } from '@/components/global-header';
 import { saveResume, getResume } from '@/lib/resumeService';
 import { templates } from '@/components/builder/templates';
@@ -94,33 +92,31 @@ export default function ResumeCraftPage() {
     });
 
     try {
-      // Dynamically import the pdf function from @react-pdf/renderer
-      const { pdf: reactPdfRendererPdfFunction } = await import('@react-pdf/renderer');
-      
-      const doc = <ResumePdfDocument data={resumeData} />;
-      const pdfInstance = reactPdfRendererPdfFunction(doc);
+      const response = await fetch('/api/generate-pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          resumeData,
+          templateId: selectedTemplateId
+        })
+      });
 
-      if (!pdfInstance) {
-        console.error("Error: react-pdf's pdf() function returned undefined. This can happen if there's an issue with the document structure or data passed to ResumePdfDocument.", { resumeData });
-        toast({
-            title: "PDF Generation Error",
-            description: "Failed to initialize PDF renderer. The document structure might be invalid or contain incompatible data.",
-            variant: "destructive",
-        });
-        setIsDownloading(false);
-        return;
+      if (!response.ok) {
+        throw new Error('Failed to generate PDF');
       }
-      
-      const blob = await pdfInstance.toBlob(); 
-      
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
+      link.href = url;
       const fileName = `${(resumeData.personalInfo.fullName || 'resume').replace(/\s+/g, '_')}_${selectedTemplateId}.pdf`;
       link.download = fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
+      window.URL.revokeObjectURL(url);
 
       toast({
         title: "Download Started!",
